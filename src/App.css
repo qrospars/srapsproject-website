@@ -1,44 +1,225 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .App {
   text-align: center;
-  height: 100vh;
-  width: 100vw;
-  background: url('./assets/background.png') no-repeat center center fixed;
+  height: 100%;
+  width: 100%;
+  max-width: 100vw;
+  /* background: url('./assets/background.png') no-repeat center center fixed; */
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
   background-size: cover;
-  font-family: 'Input Mono', monospace;
+  font-family: "input-mono", monospace;
+  font-weight: 400;
+  font-style: normal;
+  overflow-x: hidden;
+  color: #161616;
+}
+
+a {
+  text-decoration: none;
+  color: #000;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 .container {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
-  background: rgba(255, 255, 255, 0.1);
 
+  /* background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); */
 }
 
+.padding-left-15 {
+  padding: 0 0 0 15vw;
+}
+
+.padding-left-5 {
+  padding: 0 0 0 5vw;
+}
+
+
 .App-header {
-  padding: 20px 50px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  font-size: 1em;
+  width: 100%;
+  position: fixed;
+  left: 0;
+  right: 0;
+  padding: 3vh 5vw;
 }
 
 .App-logo {
-  height: 50px;
-  /* Adjust as needed */
   pointer-events: none;
+  width: 50px;
 }
 
 .App-contact {
-  color: white;
   text-decoration: none;
 }
+
+.canvas-container {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 150vw;
+  height: 150vh;
+  margin-top: -20vh;
+  margin-left: -20vw;
+  filter: blur(1.9em);
+  animation: breathing 10s infinite;
+
+}
+
+.canvas-container canvas {
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
+/* General Typography Styles */
+
+
+.title {
+  font-size: 3em;
+}
+
+.aclonica {
+  font-family: 'aclonica';
+}
+
+.subtitle {
+  font-size: 1em;
+}
+
+.tagline {
+  font-size: 5em;
+}
+
+.text {
+  font-size: 1.5em;
+}
+
+.text--large {
+  font-size: 1.8em;
+}
+
+.link {
+  text-decoration: none;
+  color: #000;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 14px;
+  }
+
+  .title {
+    font-size: 2em;
+  }
+
+  .aclonica {
+    font-family: 'aclonica';
+  }
+
+  .subtitle {
+    font-size: 1em;
+  }
+
+  .tagline {
+    font-size: 3em;
+  }
+
+  .text {
+    font-size: 1.5em;
+  }
+
+  .text--large {
+    font-size: 1.8em;
+  }
+}
+
+/*WELCOME SECTION */
+.screen {
+  width: 100%;
+  height: 100vh;
+  padding: 3vh 5vw;
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.welcome__titleContainer {
+  padding-top: 10vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.welcome__title {
+  @media (max-width: 600px) {
+    padding: 3vh 0 1vh 0;
+  }
+}
+
+
+.welcome__tagline {
+  margin-top: auto;
+  text-align: left;
+  padding-bottom: 5vh;
+}
+
+.welcome__content .text {
+  width: 45%;
+}
+
+.welcome__text--journey {
+  align-self: flex-end;
+}
+
+.welcome__map {
+  width: 100%;
+  height: 90vh;
+  background-size: cover;
+}
+
+.welcome__map .subtitle {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.welcome__engagement .text {
+  margin-bottom: 2em;
+}
+
+.welcome__engagement .link {
+  margin-right: 1em;
+}
+
+/* ANIMATIONS */
 
 @keyframes App-logo-spin {
   from {
@@ -48,4 +229,57 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes breathing {
+
+  0%,
+  100% {
+    filter: blur(1em);
+  }
+
+  50% {
+    filter: blur(3em);
+  }
+}
+
+/* FONTS */
+
+@font-face {
+  font-family: aclonica;
+  src: url(../src/assets/fonts/Aclonica-Regular.ttf);
+}
+
+/* 
+
+REGULAR
+font-family: "input-mono", monospace;
+font-weight: 400;
+font-style: normal;
+
+ITALIC
+font-family: "input-mono", monospace;
+font-weight: 400;
+font-style: italic;
+
+BOLD
+font-family: "input-mono", monospace;
+font-weight: 700;
+font-style: normal;
+
+BOLD ITALIC
+font-family: "input-mono", monospace;
+font-weight: 700;
+font-style: italic;
+
+*/
+
+.regular {
+  font-weight: 400;
+  font-style: normal;
+}
+
+.italic {
+  font-weight: 400;
+  font-style: italic;
 }

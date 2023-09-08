@@ -5,6 +5,7 @@ import Header from './components/Header';
 import WelcomeSection from './components/WelcomeSection';
 import MapSection from './components/MapSection';
 import Contact from './components/Contact';
+import CanvasBackground from './components/CanvasBackground';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
             {/* You can add other routes as needed */}
           </Routes>
         </div>
+        <CanvasBackground /> {/* Render canvas background */}
       </div>
     </Router>
   );
