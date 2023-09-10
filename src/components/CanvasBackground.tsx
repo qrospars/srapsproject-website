@@ -1,23 +1,135 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Matter from 'matter-js';
+import React, { useEffect, useRef } from 'react';
+import * as THREE from 'three';
 
 const CanvasBackground: React.FC = () => {
-    const engineRef = useRef<Matter.Engine | null>(null);
+    const sceneRef = useRef<THREE.Scene>(new THREE.Scene());
+    const cameraRef = useRef<THREE.PerspectiveCamera>(
+        new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
+    );
+    const rendererRef = useRef<THREE.WebGLRenderer>(
+        new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    );
+    const mouseTarget = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+    const meshRefs = useRef<THREE.Mesh[]>([]);
     const canvasRef = useRef<HTMLDivElement>(null);
-    const [shapes, setShapes] = useState<Matter.Body[]>([]);
-    const mouseTarget = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-    const transform = useRef({ x: 0, y: 0 });
-    const renderRef = useRef<Matter.Render | null>(null);
-    const colors = [
+
+    const COLORS = [
         '#cde3dd', '#d3d7e0', '#d7d6e0', '#d8e3db',
         '#d5d4e2', '#c5cfe5', '#b9c5e5', '#b0c8e8',
         '#bfd4e7'
     ];
+    const NUMBER_OF_SPHERES = 10;
+    const SPHERE_MAX_RADIUS = 5;
+    const SPHERE_MIN_RADIUS = 3;
+    const SPHERE_WIDTH_SEGMENTS = 32;
+    const SPHERE_HEIGHT_SEGMENTS = 32;
+    const MOUSE_MOVEMENT_FACTOR = 0.5;
+    const IS_RANDOM_SPHERES = false;
+    const OPACITY = 0.5;
+
+    let spheres = IS_RANDOM_SPHERES ? [] :
+        [
+            {
+                "color": "#dca7c5",
+                "radius": -1.558139099614932,
+                "position": {
+                    "x": 2.406676327378335,
+                    "y": -0.35879211379115894,
+                    "z": -0.5369358385405985
+                }
+            },
+            {
+                "color": "#d8e3db",
+                "radius": 1.828724011665412,
+                "position": {
+                    "x": 4.340179556140681,
+                    "y": -0.9586366869222331,
+                    "z": 1.0405974797458697
+                }
+            },
+            {
+                "color": "#c5cfe5",
+                "radius": -2.7616386897343643,
+                "position": {
+                    "x": 3.655459240846838,
+                    "y": 4.452693246136281,
+                    "z": 3.299115848141197
+                }
+            },
+            {
+                "color": "#d7d6e0",
+                "radius": -1.1941547379058055,
+                "position": {
+                    "x": -0.8311710462777562,
+                    "y": -2.098540231078685,
+                    "z": 1.3371916542184383
+                }
+            },
+            {
+                "color": "#d5d4e2",
+                "radius": -1.8791847429338844,
+                "position": {
+                    "x": 1.5122292402599449,
+                    "y": 2.4274405406335546,
+                    "z": 5.105063433133774
+                }
+            },
+            {
+                "color": "hsl(15, 100%, 93%)",
+                "radius": -2.517113601011349,
+                "position": {
+                    "x": -0.4959892564798576,
+                    "y": -2.264806605461562,
+                    "z": 6.440248167852582
+                }
+            },
+            {
+                "color": "#c5cfe5",
+                "radius": 1.2820862663151216,
+                "position": {
+                    "x": -2.316520647175347,
+                    "y": -0.7035846446026142,
+                    "z": 3.3861730730935715
+                }
+            },
+            {
+                "color": "#7260f2",
+                "radius": -2.343146815336251,
+                "position": {
+                    "x": -1.8321979346661319,
+                    "y": .6512116066071627,
+                    "z": 1.8509726922980079
+                }
+            },
+            {
+                "color": "#d8e3db",
+                "radius": -0.485871467888916,
+                "position": {
+                    "x": 0.3050039866306502,
+                    "y": -1.0736931294595582,
+                    "z": 2.7387610814347187
+                }
+            },
+            {
+                "color": "#cde3dd",
+                "radius": 0.6498044688665354,
+                "position": {
+                    "x": -2.6848091538521928,
+                    "y": -2.171940177650372,
+                    "z": 2.590910324852798
+                }
+            }
+        ]
+
 
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
-            mouseTarget.current = { x: event.clientX, y: event.clientY };
+            const xOffset = (event.clientX / window.innerWidth - 0.5) * MOUSE_MOVEMENT_FACTOR;
+            const yOffset = (event.clientY / window.innerHeight - 0.5) * MOUSE_MOVEMENT_FACTOR;
+
+            mouseTarget.current.set(xOffset, yOffset, cameraRef.current.position.z);
         };
+
 
         document.addEventListener('mousemove', handleMouseMove);
 
@@ -27,93 +139,76 @@ const CanvasBackground: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (!canvasRef.current) return;
-
-        engineRef.current = initializeEngine(canvasRef.current);
-
-        const polygons = colors.map(color => {
-            const posX = Math.random() * window.innerWidth;
-            const posY = Math.random() * window.innerHeight;
-            const size = 100 + Math.random() * 300;
-            return createCurvedPolygon(posX, posY, 6, size, color);
-        });
-
-        setShapes(polygons);
-        Matter.World.add(engineRef.current.world, polygons);
-
-        const animationLoop = () => {
-            const lerp = (a: number, b: number, n: number) => (1 - n) * a + n * b;
-            const maxX = window.innerWidth * 0.30;
-            const maxY = window.innerHeight * 0.30;
-            const speed = 0.01;
-
-            const distX = mouseTarget.current.x - window.innerWidth / 2;
-            const distY = mouseTarget.current.y - window.innerHeight / 2;
-
-            const targetX = Math.min(maxX, Math.max(-maxX, distX * speed));
-            const targetY = Math.min(maxY, Math.max(-maxY, distY * speed));
-
-            transform.current.x = lerp(transform.current.x, targetX, 0.05);
-            transform.current.y = lerp(transform.current.y, targetY, 0.05);
-
-            canvasRef.current!.style.transform = `translate(${transform.current.x}px, ${transform.current.y}px)`;
-            requestAnimationFrame(animationLoop);
-        };
-
-        requestAnimationFrame(animationLoop);
-
-        return () => {
-            if (renderRef.current) {
-                renderRef.current.canvas.remove();
-                Matter.Render.stop(renderRef.current);
-                renderRef.current = null;
-            }
-            if (engineRef.current) {
-                Matter.Engine.clear(engineRef.current);
-            }
-        };
-    }, []);
-
-    const initializeEngine = (element: HTMLDivElement): Matter.Engine => {
-        const engine = Matter.Engine.create();
-        const render = Matter.Render.create({
-            element: element,
-            engine: engine,
-            options: {
-                width: window.innerWidth * 1.5,
-                height: window.innerHeight * 1.5,
-                // background: '#161616',
-                background: '#E1EAE8',
-                wireframes: false
-            }
-        });
-
-        renderRef.current = render;
-        Matter.Render.run(renderRef.current);
-
-        return engine;
-    };
-
-    const createCurvedPolygon = (x: number, y: number, sides: number, size: number, color: string) => {
-        const angleStep = (2 * Math.PI) / sides;
-        const path: Matter.Vector[] = [];
-        const variation = size * 0.80; // Adjust for how much randomness you want
-
-        for (let i = 0; i < sides; i++) {
-            const randomFactor = 1 + (Math.random() - 0.5) * 2 * (variation / size);
-            const xx = x + randomFactor * size * Math.cos(i * angleStep);
-            const yy = y + randomFactor * size * Math.sin(i * angleStep);
-            path.push({ x: xx, y: yy });
+        rendererRef.current.setSize(window.innerWidth, window.innerHeight);
+        if (canvasRef.current) {
+            canvasRef.current.appendChild(rendererRef.current.domElement);
         }
 
-        return Matter.Bodies.fromVertices(x, y, [Matter.Vertices.clockwiseSort(path)], {
-            render: {
-                fillStyle: color,
-                // Other render properties
-            }
-        });
-    };
+        cameraRef.current.position.z = 10;
 
+        // Create spheres and add them to the scene
+        for (let i = 0; i < NUMBER_OF_SPHERES; i++) {
+            let color = IS_RANDOM_SPHERES ? COLORS[Math.floor(Math.random() * COLORS.length)] : spheres[i].color;
+            const radius = IS_RANDOM_SPHERES ? Math.random() * SPHERE_MAX_RADIUS - SPHERE_MIN_RADIUS : spheres[i].radius;
+            const geometry = new THREE.SphereGeometry(radius, SPHERE_WIDTH_SEGMENTS, SPHERE_HEIGHT_SEGMENTS);
+            const material = new THREE.MeshBasicMaterial({
+                color,
+                opacity: OPACITY,
+                transparent: true
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            let position = {
+                x: IS_RANDOM_SPHERES ? Math.random() * 8 - 3 : spheres[i].position.x,
+                y: IS_RANDOM_SPHERES ? Math.random() * 8 - 3 : spheres[i].position.y,
+                z: IS_RANDOM_SPHERES ? Math.random() * 8 - 1 : spheres[i].position.z
+            }
+            mesh.position.set(position.x, position.y, position.z);
+            sceneRef.current.add(mesh);
+            meshRefs.current.push(mesh);
+            spheres.push({
+                color,
+                radius,
+                position
+            });
+        }
+        console.log(spheres)
+
+        const lerp = (start: number, end: number, factor: number) => (1 - factor) * start + factor * end;
+
+        const animate = () => {
+            requestAnimationFrame(animate);
+
+            cameraRef.current.position.x = lerp(cameraRef.current.position.x, mouseTarget.current.x, 0.05);
+            cameraRef.current.position.y = lerp(cameraRef.current.position.y, mouseTarget.current.y, 0.05);
+            cameraRef.current.lookAt(sceneRef.current.position);
+
+            rendererRef.current.render(sceneRef.current, cameraRef.current);
+        };
+        animate();
+
+        return () => {
+            // Clean up resources
+            for (let mesh of meshRefs.current) {
+                sceneRef.current.remove(mesh);
+
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach((material) => {
+                        material.dispose();
+                    });
+                } else {
+                    mesh.material.dispose();
+                }
+
+                mesh.geometry.dispose();
+            }
+
+            if (canvasRef.current) {
+                canvasRef.current.removeChild(rendererRef.current.domElement);
+            }
+
+            rendererRef.current.dispose();
+        };
+    }, []);
 
     return <div ref={canvasRef} className="canvas-container" />;
 };

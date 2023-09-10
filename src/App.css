@@ -63,7 +63,7 @@ a:hover {
 
 .App-logo {
   pointer-events: none;
-  width: 50px;
+  width: 35px;
 }
 
 .App-contact {
@@ -76,12 +76,12 @@ a:hover {
   top: 0;
   left: 0;
   z-index: -1;
-  width: 150vw;
-  height: 150vh;
-  margin-top: -20vh;
-  margin-left: -20vw;
+  width: 100vw;
+  height: 100vh;
   filter: blur(1.9em);
   animation: breathing 10s infinite;
+  background: linear-gradient(145deg, rgba(181, 203, 253, 1) 0%, #f5f5f5 97%);
+
 
 }
 

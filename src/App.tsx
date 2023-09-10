@@ -20,7 +20,7 @@ const App = () => {
             {/* You can add other routes as needed */}
           </Routes>
         </div>
-        <CanvasBackground /> {/* Render canvas background */}
+        <CanvasBackground key={Math.random()} /> {/* Render canvas background */}
       </div>
     </Router>
   );
