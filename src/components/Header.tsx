@@ -22,8 +22,8 @@ const Header = () => {
 
       </Link>
       <nav>
-        <Link className="App-contact link" to="/contact">
-          Contact
+        <Link className="App-contact link" to="/map">
+          Map
         </Link>
       </nav>
     </header>

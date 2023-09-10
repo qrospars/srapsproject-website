@@ -23,7 +23,7 @@ const CanvasBackground: React.FC = () => {
     const SPHERE_MIN_RADIUS = 3;
     const SPHERE_WIDTH_SEGMENTS = 32;
     const SPHERE_HEIGHT_SEGMENTS = 32;
-    const MOUSE_MOVEMENT_FACTOR = 0.5;
+    const MOUSE_MOVEMENT_FACTOR = 1;
     const IS_RANDOM_SPHERES = false;
     const OPACITY = 0.5;
 

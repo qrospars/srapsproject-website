@@ -6,6 +6,7 @@ import WelcomeSection from './components/WelcomeSection';
 import MapSection from './components/MapSection';
 import Contact from './components/Contact';
 import CanvasBackground from './components/CanvasBackground';
+import Footer from './components/Footer';
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
             <Route path="/contact" element={<Contact />} />
             {/* You can add other routes as needed */}
           </Routes>
+          <Footer />
         </div>
         <CanvasBackground key={Math.random()} /> {/* Render canvas background */}
       </div>

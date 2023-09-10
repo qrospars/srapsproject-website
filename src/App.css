@@ -63,7 +63,11 @@ a:hover {
 
 .App-logo {
   pointer-events: none;
-  width: 35px;
+  width: 50px;
+
+  @media (max-width: 600px) {
+    width: 35px;
+  }
 }
 
 .App-contact {
@@ -79,7 +83,7 @@ a:hover {
   width: 100vw;
   height: 100vh;
   filter: blur(1.9em);
-  animation: breathing 10s infinite;
+  animation: breathing 5s infinite;
   background: linear-gradient(145deg, rgba(181, 203, 253, 1) 0%, #f5f5f5 97%);
 
 
@@ -107,11 +111,15 @@ a:hover {
 }
 
 .tagline {
-  font-size: 5em;
+  font-size: 4.5em;
 }
 
 .text {
   font-size: 1.5em;
+}
+
+.number {
+  font-size: 3em;
 }
 
 .text--large {
@@ -145,11 +153,15 @@ a:hover {
   }
 
   .tagline {
-    font-size: 3em;
+    font-size: 2.8em;
   }
 
   .text {
-    font-size: 1.5em;
+    font-size: 1.2em;
+  }
+
+  .number {
+    font-size: 2.4em;
   }
 
   .text--large {
@@ -162,6 +174,10 @@ a:hover {
   width: 100%;
   height: 100vh;
   padding: 3vh 5vw;
+
+  @media (max-width: 600px) {
+    padding: 3vh 10vw;
+  }
 }
 
 .welcome {
@@ -179,7 +195,7 @@ a:hover {
 
 .welcome__title {
   @media (max-width: 600px) {
-    padding: 3vh 0 1vh 0;
+    padding: 5vh 0 1vh 0;
   }
 }
 
@@ -190,18 +206,56 @@ a:hover {
   padding-bottom: 5vh;
 }
 
-.welcome__content .text {
-  width: 45%;
+/* WELCOME CONTENT (2nd screen) */
+
+.welcome__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10vh 15vw;
+
+  @media (max-width: 600px) {
+    padding: 0vh 10vw;
+  }
 }
 
-.welcome__text--journey {
-  align-self: flex-end;
+.welcome__content__journey {
+  text-align: left;
 }
+
+.welcome__content__concept {
+  text-align: right;
+}
+
+.welcome__content .text {
+  padding-top: 15px;
+}
+
+.welcome__content__numbers {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.welcome__content .link {
+  text-decoration: underline;
+}
+
+.welcome__content__social .text {
+  font-size: 1.2em;
+
+  @media (max-width: 600px) {
+    font-size: 1em;
+  }
+}
+
+/* MAP (3rd screen) */
 
 .welcome__map {
-  width: 100%;
-  height: 90vh;
-  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15vh 5vw;
 }
 
 .welcome__map .subtitle {
@@ -211,12 +265,37 @@ a:hover {
   transform: translateX(-50%);
 }
 
-.welcome__engagement .text {
-  margin-bottom: 2em;
+/* FOOTER */
+
+.footer a {
+  color: #161616;
+  fill: #161616;
 }
 
-.welcome__engagement .link {
-  margin-right: 1em;
+.footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 5vh 25vw;
+  grid-gap: 2vh;
+  max-width: 500px;
+  margin: auto;
+  box-sizing: content-box;
+}
+
+.footer_icon {
+  width: 2em;
+}
+
+.footer__socials {
+  grid-column: 1/4;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.footer__certification {
+  grid-row: 2;
+  grid-column: 1/4;
 }
 
 /* ANIMATIONS */
