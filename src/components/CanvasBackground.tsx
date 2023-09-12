@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-
-const CanvasBackground: React.FC = () => {
+type CanvasBackgroundProps = {
+    scroll: number
+}
+const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
     const sceneRef = useRef<THREE.Scene>(new THREE.Scene());
     const cameraRef = useRef<THREE.PerspectiveCamera>(
         new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -12,6 +14,7 @@ const CanvasBackground: React.FC = () => {
     const mouseTarget = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
     const meshRefs = useRef<THREE.Mesh[]>([]);
     const canvasRef = useRef<HTMLDivElement>(null);
+    const originalVertices = useRef<THREE.Vector3[][]>([]);
 
     const COLORS = [
         '#cde3dd', '#d3d7e0', '#d7d6e0', '#d8e3db',
@@ -27,99 +30,7 @@ const CanvasBackground: React.FC = () => {
     const IS_RANDOM_SPHERES = false;
     const OPACITY = 0.5;
 
-    let spheres = IS_RANDOM_SPHERES ? [] :
-        [
-            {
-                "color": "#dca7c5",
-                "radius": -1.558139099614932,
-                "position": {
-                    "x": 2.406676327378335,
-                    "y": -0.35879211379115894,
-                    "z": -0.5369358385405985
-                }
-            },
-            {
-                "color": "#d8e3db",
-                "radius": 1.828724011665412,
-                "position": {
-                    "x": 4.340179556140681,
-                    "y": -0.9586366869222331,
-                    "z": 1.0405974797458697
-                }
-            },
-            {
-                "color": "#c5cfe5",
-                "radius": -2.7616386897343643,
-                "position": {
-                    "x": 3.655459240846838,
-                    "y": 4.452693246136281,
-                    "z": 3.299115848141197
-                }
-            },
-            {
-                "color": "#d7d6e0",
-                "radius": -1.1941547379058055,
-                "position": {
-                    "x": -0.8311710462777562,
-                    "y": -2.098540231078685,
-                    "z": 1.3371916542184383
-                }
-            },
-            {
-                "color": "#d5d4e2",
-                "radius": -1.8791847429338844,
-                "position": {
-                    "x": 1.5122292402599449,
-                    "y": 2.4274405406335546,
-                    "z": 5.105063433133774
-                }
-            },
-            {
-                "color": "hsl(15, 100%, 93%)",
-                "radius": -2.517113601011349,
-                "position": {
-                    "x": -0.4959892564798576,
-                    "y": -2.264806605461562,
-                    "z": 6.440248167852582
-                }
-            },
-            {
-                "color": "#c5cfe5",
-                "radius": 1.2820862663151216,
-                "position": {
-                    "x": -2.316520647175347,
-                    "y": -0.7035846446026142,
-                    "z": 3.3861730730935715
-                }
-            },
-            {
-                "color": "#7260f2",
-                "radius": -2.343146815336251,
-                "position": {
-                    "x": -1.8321979346661319,
-                    "y": .6512116066071627,
-                    "z": 1.8509726922980079
-                }
-            },
-            {
-                "color": "#d8e3db",
-                "radius": -0.485871467888916,
-                "position": {
-                    "x": 0.3050039866306502,
-                    "y": -1.0736931294595582,
-                    "z": 2.7387610814347187
-                }
-            },
-            {
-                "color": "#cde3dd",
-                "radius": 0.6498044688665354,
-                "position": {
-                    "x": -2.6848091538521928,
-                    "y": -2.171940177650372,
-                    "z": 2.590910324852798
-                }
-            }
-        ]
+    let spheres = IS_RANDOM_SPHERES ? [] : initialSpheresPositions
 
 
     useEffect(() => {
@@ -171,7 +82,35 @@ const CanvasBackground: React.FC = () => {
                 position
             });
         }
-        console.log(spheres)
+
+        meshRefs.current.forEach(e => {
+            const positionAttribute = e.geometry.getAttribute('position');
+            const positions = positionAttribute.array;
+
+            // Calculate the number of vertices to change (about 10% of total vertices)
+            const numVerticesToChange = Math.floor(positions.length / 3 * 0.1);
+
+            // Generate random directions for each vertex to be changed
+            for (let i = 0; i < numVerticesToChange; i++) {
+                const randomIndex = Math.floor(Math.random() * positions.length / 3) * 3;
+                const x = positions[randomIndex];
+                const y = positions[randomIndex + 1];
+                const z = positions[randomIndex + 2];
+
+                // Generate random direction values between -1 and 1
+                const directionX = (Math.random() - 0.5) * 2;
+                const directionY = (Math.random() - 0.5) * 2;
+                const directionZ = (Math.random() - 0.5) * 2;
+
+                // Modify the vertex position using the random direction
+                positions[randomIndex] = x + directionX;
+                positions[randomIndex + 1] = y + directionY;
+                positions[randomIndex + 2] = z + directionZ;
+            }
+
+            positionAttribute.needsUpdate = true; // Notify Three.js that the attribute has been updated
+        });
+
 
         const lerp = (start: number, end: number, factor: number) => (1 - factor) * start + factor * end;
 
@@ -214,3 +153,96 @@ const CanvasBackground: React.FC = () => {
 };
 
 export default CanvasBackground;
+
+const initialSpheresPositions = [
+    {
+        "color": "#dca7c5",
+        "radius": -1.558139099614932,
+        "position": {
+            "x": 2.406676327378335,
+            "y": -0.35879211379115894,
+            "z": -0.5369358385405985
+        }
+    },
+    {
+        "color": "#d8e3db",
+        "radius": 1.828724011665412,
+        "position": {
+            "x": 4.340179556140681,
+            "y": -0.9586366869222331,
+            "z": 1.0405974797458697
+        }
+    },
+    {
+        "color": "#c5cfe5",
+        "radius": -2.7616386897343643,
+        "position": {
+            "x": 3.655459240846838,
+            "y": 4.452693246136281,
+            "z": 3.299115848141197
+        }
+    },
+    {
+        "color": "#d7d6e0",
+        "radius": -1.1941547379058055,
+        "position": {
+            "x": -0.8311710462777562,
+            "y": -2.098540231078685,
+            "z": 1.3371916542184383
+        }
+    },
+    {
+        "color": "#d5d4e2",
+        "radius": -1.8791847429338844,
+        "position": {
+            "x": 1.5122292402599449,
+            "y": 2.4274405406335546,
+            "z": 5.105063433133774
+        }
+    },
+    {
+        "color": "hsl(15, 100%, 93%)",
+        "radius": -2.517113601011349,
+        "position": {
+            "x": -0.4959892564798576,
+            "y": -2.264806605461562,
+            "z": 6.440248167852582
+        }
+    },
+    {
+        "color": "#c5cfe5",
+        "radius": 1.2820862663151216,
+        "position": {
+            "x": -2.316520647175347,
+            "y": -0.7035846446026142,
+            "z": 3.3861730730935715
+        }
+    },
+    {
+        "color": "#7260f2",
+        "radius": -2.343146815336251,
+        "position": {
+            "x": -1.8321979346661319,
+            "y": .6512116066071627,
+            "z": 1.8509726922980079
+        }
+    },
+    {
+        "color": "#d8e3db",
+        "radius": -0.485871467888916,
+        "position": {
+            "x": 0.3050039866306502,
+            "y": -1.0736931294595582,
+            "z": 2.7387610814347187
+        }
+    },
+    {
+        "color": "#cde3dd",
+        "radius": 0.6498044688665354,
+        "position": {
+            "x": -2.6848091538521928,
+            "y": -2.171940177650372,
+            "z": 2.590910324852798
+        }
+    }
+]

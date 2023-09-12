@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 const WelcomeSection = () => {
+
     return (
         <section className="welcome">
             <div className="screen welcome__titleContainer">
