@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './App.css';
 import Header from './components/Header';
 import WelcomeSection from './components/WelcomeSection';
 import MapSection from './components/MapSection';
@@ -9,33 +9,37 @@ import CanvasBackground from './components/CanvasBackground';
 import Footer from './components/Footer';
 
 const App = () => {
-
   const [scrollPosition, setScrollPosition] = useState(0);
-  function handleScroll(event: Event) {
-    const appElement = document.querySelector('.App') as HTMLElement;
-    if (!appElement) return;
+  const appElementRef = useRef<HTMLElement | null>(null);
+  const scrollHeightRef = useRef<number>(0);
+  const clientHeightRef = useRef<number>(0);
 
-    const scrollHeight = appElement.scrollHeight;   // Total height of the content
-    const clientHeight = appElement.clientHeight;   // Visible height
-    const scrollTop = appElement.scrollTop;         // How much has been scrolled
+  function handleScroll() {
+    if (!appElementRef.current) return;
 
-    const scrollableHeight = scrollHeight - clientHeight;
+    if (!scrollHeightRef.current || !clientHeightRef.current) {
+      scrollHeightRef.current = appElementRef.current.scrollHeight;
+      clientHeightRef.current = appElementRef.current.clientHeight;
+    }
+
+    const scrollTop = appElementRef.current.scrollTop;
+    const scrollableHeight = scrollHeightRef.current - clientHeightRef.current;
     const scrollPercentage = (scrollTop / scrollableHeight) * 100;
 
-    setScrollPosition(scrollPercentage);
-    console.log(scrollPercentage)
+    setScrollPosition(Math.round(scrollPercentage));
   }
 
-
   useEffect(() => {
-    const appElement = document.querySelector('.App') as HTMLElement | null;
-    if (appElement) {
-      appElement.addEventListener('scroll', handleScroll);
+    appElementRef.current = document.querySelector('.App') as HTMLElement | null;
+
+    if (appElementRef.current) {
+      appElementRef.current.addEventListener('scroll', handleScroll);
     }
+
     // Cleanup function
     return () => {
-      if (appElement) {
-        appElement.removeEventListener('scroll', handleScroll);
+      if (appElementRef.current) {
+        appElementRef.current.removeEventListener('scroll', handleScroll);
       }
     };
   }, []);
@@ -60,4 +64,3 @@ const App = () => {
 }
 
 export default App;
-

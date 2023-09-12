@@ -1,39 +1,165 @@
-import React, { useEffect, useRef, useState } from 'react';
+
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+
 type CanvasBackgroundProps = {
     scroll: number
 }
+
+const COLORS = [
+    '#cde3dd', '#d3d7e0', '#d7d6e0', '#d8e3db',
+    '#d5d4e2', '#c5cfe5', '#b9c5e5', '#b0c8e8',
+    '#bfd4e7'
+];
+const NUMBER_OF_SPHERES = 10;
+const SPHERE_MAX_RADIUS = 5;
+const SPHERE_MIN_RADIUS = 3;
+const SPHERE_WIDTH_SEGMENTS = 32;
+const SPHERE_HEIGHT_SEGMENTS = 32;
+const MOUSE_MOVEMENT_FACTOR = 1;
+const IS_RANDOM_SPHERES = false;
+const OPACITY = 0.6;
+const SPHERE_DEFORMATION = 1.3;
+const DIRECTIONS = {
+    "x": 1000,
+    "y": 1000,
+    "z": 1000,
+}
+
+// Function for linear interpolation (lerp) between two values
+const lerp = (start: number, end: number, t: number) => {
+    return start * (1 - t) + end * t;
+};
+
+const updateVertexPositions = (
+    meshes: THREE.Mesh[],
+    originalPositions: Float32Array[],
+    directionsModification: { x: number; y: number; z: number },
+    scrollPercentage: number,
+) => {
+    const deformationScale = scrollPercentage / 100;
+
+    meshes.forEach((e, meshIndex) => {
+        const positionAttribute = e.geometry.getAttribute('position');
+        const positions = positionAttribute.array as Float32Array;
+
+        originalPositions[meshIndex].forEach((_, vertexIndex) => {
+            if (vertexIndex % 10 !== 0) return;
+
+            const xOriginal = originalPositions[meshIndex][vertexIndex * 3];
+            const yOriginal = originalPositions[meshIndex][vertexIndex * 3 + 1];
+            const zOriginal = originalPositions[meshIndex][vertexIndex * 3 + 2];
+
+            const xDeformed = xOriginal * SPHERE_DEFORMATION;
+            const yDeformed = yOriginal * SPHERE_DEFORMATION;
+            const zDeformed = zOriginal * SPHERE_DEFORMATION;
+
+            const x = lerp(xOriginal, xDeformed, deformationScale);
+            const y = lerp(yOriginal, yDeformed, deformationScale);
+            const z = lerp(zOriginal, zDeformed, deformationScale);
+
+            positions[vertexIndex * 3] = x;
+            positions[vertexIndex * 3 + 1] = y;
+            positions[vertexIndex * 3 + 2] = z;
+        });
+
+        positionAttribute.needsUpdate = true;
+    });
+};
+
+
+
+
+
+
+const animateCameraAndRenderer = (
+    camera: THREE.PerspectiveCamera,
+    target: THREE.Vector3,
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene
+): number => {
+    const lerp = (start: number, end: number, factor: number) => (1 - factor) * start + factor * end;
+    const animate = () => {
+        requestAnimationFrame(animate);
+
+        camera.position.x = lerp(camera.position.x, target.x, 0.05);
+        camera.position.y = lerp(camera.position.y, target.y, 0.05);
+        camera.lookAt(scene.position);
+
+        renderer.render(scene, camera);
+    };
+
+    return requestAnimationFrame(animate); // Return the animation ID provided by requestAnimationFrame
+};
+
+
+const createSpheres = (
+    sceneRef: React.MutableRefObject<THREE.Scene>,
+    meshRefs: React.MutableRefObject<
+        THREE.Mesh<
+            THREE.BufferGeometry<THREE.NormalBufferAttributes>,
+            THREE.Material | THREE.Material[],
+            THREE.Object3DEventMap
+        >[]
+    >,
+    originalPositionsRef: React.MutableRefObject<Float32Array[]>,
+    spheres: { color: any; radius: any; position: any; }[]
+) => {
+
+    let allSelectedVerticesIndices = []
+    // Create spheres and add them to the scene
+    for (let i = 0; i < NUMBER_OF_SPHERES; i++) {
+        const { color, radius, position } = IS_RANDOM_SPHERES ? {
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+            radius: Math.random() * SPHERE_MAX_RADIUS - SPHERE_MIN_RADIUS,
+            position: {
+                x: Math.random() * 8 - 3,
+                y: Math.random() * 8 - 3,
+                z: Math.random() * 8 - 1,
+            },
+        } : spheres[i];
+
+        const geometry = new THREE.SphereGeometry(radius, SPHERE_WIDTH_SEGMENTS, SPHERE_HEIGHT_SEGMENTS);
+        const material = new THREE.MeshBasicMaterial({
+            color,
+            opacity: OPACITY,
+            transparent: true,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+
+        mesh.position.set(position.x, position.y, position.z);
+        sceneRef.current.add(mesh);
+        meshRefs.current.push(mesh);
+        spheres.push({ color, radius, position });
+        const positionAttribute = geometry.getAttribute('position');
+        originalPositionsRef.current.push(new Float32Array(positionAttribute.array));
+    }
+};
+
 const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
     const sceneRef = useRef<THREE.Scene>(new THREE.Scene());
     const cameraRef = useRef<THREE.PerspectiveCamera>(
         new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
     );
-    const rendererRef = useRef<THREE.WebGLRenderer>(
-        new THREE.WebGLRenderer({ antialias: true, alpha: true })
-    );
+    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+
+    if (!rendererRef.current) {
+        rendererRef.current = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    }
     const mouseTarget = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+
     const meshRefs = useRef<THREE.Mesh[]>([]);
     const canvasRef = useRef<HTMLDivElement>(null);
-    const originalVertices = useRef<THREE.Vector3[][]>([]);
+    const originalPositionsRef = useRef<Float32Array[]>([]);
 
-    const COLORS = [
-        '#cde3dd', '#d3d7e0', '#d7d6e0', '#d8e3db',
-        '#d5d4e2', '#c5cfe5', '#b9c5e5', '#b0c8e8',
-        '#bfd4e7'
-    ];
-    const NUMBER_OF_SPHERES = 10;
-    const SPHERE_MAX_RADIUS = 5;
-    const SPHERE_MIN_RADIUS = 3;
-    const SPHERE_WIDTH_SEGMENTS = 32;
-    const SPHERE_HEIGHT_SEGMENTS = 32;
-    const MOUSE_MOVEMENT_FACTOR = 1;
-    const IS_RANDOM_SPHERES = false;
-    const OPACITY = 0.5;
+
+
+
 
     let spheres = IS_RANDOM_SPHERES ? [] : initialSpheresPositions
 
 
-    useEffect(() => {
+    useEffect(function trackMouseMove() {
         const handleMouseMove = (event: MouseEvent) => {
             const xOffset = (event.clientX / window.innerWidth - 0.5) * MOUSE_MOVEMENT_FACTOR;
             const yOffset = (event.clientY / window.innerHeight - 0.5) * MOUSE_MOVEMENT_FACTOR;
@@ -49,105 +175,56 @@ const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
         };
     }, []);
 
-    useEffect(() => {
+    useEffect(function initializeSpheres() {
+        if (!rendererRef.current) return
         rendererRef.current.setSize(window.innerWidth, window.innerHeight);
-        if (canvasRef.current) {
+        if (canvasRef.current && !canvasRef.current.firstChild) {
             canvasRef.current.appendChild(rendererRef.current.domElement);
         }
-
         cameraRef.current.position.z = 10;
-
-        // Create spheres and add them to the scene
-        for (let i = 0; i < NUMBER_OF_SPHERES; i++) {
-            let color = IS_RANDOM_SPHERES ? COLORS[Math.floor(Math.random() * COLORS.length)] : spheres[i].color;
-            const radius = IS_RANDOM_SPHERES ? Math.random() * SPHERE_MAX_RADIUS - SPHERE_MIN_RADIUS : spheres[i].radius;
-            const geometry = new THREE.SphereGeometry(radius, SPHERE_WIDTH_SEGMENTS, SPHERE_HEIGHT_SEGMENTS);
-            const material = new THREE.MeshBasicMaterial({
-                color,
-                opacity: OPACITY,
-                transparent: true
-            });
-            const mesh = new THREE.Mesh(geometry, material);
-            let position = {
-                x: IS_RANDOM_SPHERES ? Math.random() * 8 - 3 : spheres[i].position.x,
-                y: IS_RANDOM_SPHERES ? Math.random() * 8 - 3 : spheres[i].position.y,
-                z: IS_RANDOM_SPHERES ? Math.random() * 8 - 1 : spheres[i].position.z
-            }
-            mesh.position.set(position.x, position.y, position.z);
-            sceneRef.current.add(mesh);
-            meshRefs.current.push(mesh);
-            spheres.push({
-                color,
-                radius,
-                position
-            });
-        }
-
-        meshRefs.current.forEach(e => {
-            const positionAttribute = e.geometry.getAttribute('position');
-            const positions = positionAttribute.array;
-
-            // Calculate the number of vertices to change (about 10% of total vertices)
-            const numVerticesToChange = Math.floor(positions.length / 3 * 0.1);
-
-            // Generate random directions for each vertex to be changed
-            for (let i = 0; i < numVerticesToChange; i++) {
-                const randomIndex = Math.floor(Math.random() * positions.length / 3) * 3;
-                const x = positions[randomIndex];
-                const y = positions[randomIndex + 1];
-                const z = positions[randomIndex + 2];
-
-                // Generate random direction values between -1 and 1
-                const directionX = (Math.random() - 0.5) * 2;
-                const directionY = (Math.random() - 0.5) * 2;
-                const directionZ = (Math.random() - 0.5) * 2;
-
-                // Modify the vertex position using the random direction
-                positions[randomIndex] = x + directionX;
-                positions[randomIndex + 1] = y + directionY;
-                positions[randomIndex + 2] = z + directionZ;
-            }
-
-            positionAttribute.needsUpdate = true; // Notify Three.js that the attribute has been updated
-        });
-
-
-        const lerp = (start: number, end: number, factor: number) => (1 - factor) * start + factor * end;
-
-        const animate = () => {
-            requestAnimationFrame(animate);
-
-            cameraRef.current.position.x = lerp(cameraRef.current.position.x, mouseTarget.current.x, 0.05);
-            cameraRef.current.position.y = lerp(cameraRef.current.position.y, mouseTarget.current.y, 0.05);
-            cameraRef.current.lookAt(sceneRef.current.position);
-
-            rendererRef.current.render(sceneRef.current, cameraRef.current);
-        };
-        animate();
+        createSpheres(sceneRef, meshRefs, originalPositionsRef, spheres);
 
         return () => {
             // Clean up resources
-            for (let mesh of meshRefs.current) {
+            meshRefs.current.forEach((mesh) => {
+
                 sceneRef.current.remove(mesh);
 
                 if (Array.isArray(mesh.material)) {
-                    mesh.material.forEach((material) => {
-                        material.dispose();
-                    });
+                    mesh.material.forEach((material) => material.dispose());
                 } else {
                     mesh.material.dispose();
                 }
 
                 mesh.geometry.dispose();
-            }
+            });
 
-            if (canvasRef.current) {
+            if (canvasRef.current && rendererRef.current) {
                 canvasRef.current.removeChild(rendererRef.current.domElement);
             }
-
-            rendererRef.current.dispose();
+            if (rendererRef.current) {
+                rendererRef.current.dispose();
+            }
         };
     }, []);
+
+    useEffect(function AnimateCameraAndRender() {
+        if (!rendererRef.current) return
+        const animationId = animateCameraAndRenderer(
+            cameraRef.current,
+            mouseTarget.current,
+            rendererRef.current,
+            sceneRef.current
+        );
+
+        return () => {
+            cancelAnimationFrame(animationId);
+        };
+    }, []);
+
+    useEffect(function changeSceneOnScroll() {
+        updateVertexPositions(meshRefs.current, originalPositionsRef.current, DIRECTIONS, props.scroll);
+    }, [props.scroll]);
 
     return <div ref={canvasRef} className="canvas-container" />;
 };
