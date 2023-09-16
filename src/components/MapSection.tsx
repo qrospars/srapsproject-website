@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import L from 'leaflet';
 
 const MapSection = () => {
     useEffect(() => {
@@ -9,7 +8,7 @@ const MapSection = () => {
 
     return (
         <section className="map-section">
-            <div id="mapid"></div>
+            <div id="mapid"> Under construction</div>
         </section>
     );
 }

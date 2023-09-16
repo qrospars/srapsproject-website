@@ -1,6 +1,4 @@
 import React from 'react';
-import logo from '../assets/images/logo sraps 3.svg';
-import { Link } from 'react-router-dom';
 interface SocialLinkProps {
   href: string;
   children: React.ReactNode;
@@ -23,7 +21,7 @@ const Tiktok = () => (
 
 const SocialLink = ({ href, children }: SocialLinkProps) => (
   <div role="listitem" className="social-link">
-    <a href={href} target="_blank">{children}</a>
+    <a href={href} target="_blank" rel="noreferrer">{children}</a>
 
   </div>
 );

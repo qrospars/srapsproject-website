@@ -271,6 +271,14 @@ a:hover {
   grid-column: 1/4;
 }
 
+/* MAP SECTION */
+
+.map-section {
+  display: grid;
+  align-items: center;
+  min-height: 80vh;
+}
+
 /* ANIMATIONS */
 
 .hidden {

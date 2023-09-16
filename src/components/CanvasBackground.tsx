@@ -106,7 +106,6 @@ const createSpheres = (
     spheres: { color: any; radius: any; position: any; }[]
 ) => {
 
-    let allSelectedVerticesIndices = []
     // Create spheres and add them to the scene
     for (let i = 0; i < NUMBER_OF_SPHERES; i++) {
         const { color, radius, position } = IS_RANDOM_SPHERES ? {
@@ -176,19 +175,32 @@ const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
     }, []);
 
     useEffect(function initializeSpheres() {
-        if (!rendererRef.current) return
-        rendererRef.current.setSize(window.innerWidth, window.innerHeight);
-        if (canvasRef.current && !canvasRef.current.firstChild) {
-            canvasRef.current.appendChild(rendererRef.current.domElement);
+        // Early exits
+        if (!rendererRef.current || !canvasRef.current || !cameraRef.current) return;
+
+        const { current: renderer } = rendererRef;
+        const { current: canvas } = canvasRef;
+        const { current: camera } = cameraRef;
+        const { current: scene } = sceneRef;
+        const currentMeshRefs = meshRefs.current;
+
+        // Initialize renderer and canvas
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        if (!canvas.firstChild) {
+            canvas.appendChild(renderer.domElement);
         }
-        cameraRef.current.position.z = 10;
+
+        // Initialize camera
+        camera.position.z = 10;
+
+        // Create spheres
         createSpheres(sceneRef, meshRefs, originalPositionsRef, spheres);
 
+        // Cleanup function
         return () => {
-            // Clean up resources
-            meshRefs.current.forEach((mesh) => {
-
-                sceneRef.current.remove(mesh);
+            // Dispose resources
+            currentMeshRefs.forEach((mesh) => {
+                scene.remove(mesh);
 
                 if (Array.isArray(mesh.material)) {
                     mesh.material.forEach((material) => material.dispose());
@@ -199,14 +211,14 @@ const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
                 mesh.geometry.dispose();
             });
 
-            if (canvasRef.current && rendererRef.current) {
-                canvasRef.current.removeChild(rendererRef.current.domElement);
-            }
-            if (rendererRef.current) {
-                rendererRef.current.dispose();
+            // Remove renderer from canvas and dispose
+            if (renderer) {
+                canvas.removeChild(renderer.domElement);
+                renderer.dispose();
             }
         };
     }, []);
+
 
     useEffect(function AnimateCameraAndRender() {
         if (!rendererRef.current) return
