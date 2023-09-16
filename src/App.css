@@ -18,6 +18,7 @@
   font-weight: 400;
   font-style: normal;
   overflow-x: hidden;
+  overflow-y: hidden;
   color: #161616;
 }
 
@@ -33,10 +34,6 @@ a:hover {
 .container {
   width: 100%;
   height: 100vh;
-
-  /* background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); */
 }
 
 .padding-left-15 {
@@ -171,7 +168,7 @@ a:hover {
 /*WELCOME SECTION */
 .screen {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   padding: 3vh 5vw;
 
   @media (max-width: 600px) {
@@ -223,14 +220,16 @@ a:hover {
 }
 
 .welcome__content__concept {
+  margin: 25vh 0;
   text-align: right;
 }
 
 .welcome__content .text {
-  padding-top: 15px;
+  margin-top: 15px;
 }
 
 .welcome__content__numbers {
+  margin: 10vh 0;
   display: flex;
   flex-direction: row;
   justify-content: space-around;
@@ -299,14 +298,28 @@ a:hover {
 
 /* ANIMATIONS */
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
+.hidden {
+  opacity: 0;
+}
 
-  to {
-    transform: rotate(360deg);
-  }
+.slide-from-top {
+  animation: slideFromTop 1s ease-out forwards 0.5s;
+}
+
+.fade-in {
+  animation: fadeIn 1s ease-out forwards 1s;
+}
+
+.slide-from-left--delayed {
+  animation: slideFromLeft 1s ease-out forwards 1.5s;
+}
+
+.slide-from-left {
+  animation: appearFromLeft 1s ease-out forwards;
+}
+
+.slide-from-right {
+  animation: appearFromRight 1s ease-out forwards;
 }
 
 @keyframes breathing {
@@ -317,9 +330,69 @@ a:hover {
   }
 
   50% {
-    filter: blur(1em);
+    filter: blur(0.8em);
   }
 }
+
+@keyframes slideFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+@keyframes slideFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-5%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes appearFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes appearFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 
 /* FONTS */
 
