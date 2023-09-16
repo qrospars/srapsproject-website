@@ -1,6 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const WelcomeSection = () => {
+interface WelcomeSectionProps {
+    setPlayedInitAnimation: React.Dispatch<React.SetStateAction<boolean>>;
+    playedInitAnimation: boolean;
+}
+const WelcomeSection: React.FC<WelcomeSectionProps> = (props) => {
     const animationRefs = [
         { ref: useRef<HTMLHeadingElement | null>(null), direction: 'right' },
         { ref: useRef<HTMLHeadingElement | null>(null), direction: 'left' },
@@ -62,12 +66,11 @@ const WelcomeSection = () => {
 
         const timeoutId = setTimeout(() => {
             requestAnimationFrame(() => {
-                if (appElementRef.current) {
+                if (appElementRef.current && !props.playedInitAnimation) {
                     console.log('scrolling allowed')
                     appElementRef.current.style.overflowY = 'auto';
                 }
             });
-
         }, animationDuration);
 
 
@@ -83,6 +86,7 @@ const WelcomeSection = () => {
                     }
                 }
             });
+            props.setPlayedInitAnimation(true);
         };
     }, []);
 

@@ -13,6 +13,7 @@ const App = () => {
   const appElementRef = useRef<HTMLElement | null>(null);
   const scrollHeightRef = useRef<number>(0);
   const clientHeightRef = useRef<number>(0);
+  const [playedInitAnimation, setPlayedInitAnimation] = useState(false)
 
   function handleScroll() {
     if (!appElementRef.current) return;
@@ -50,7 +51,7 @@ const App = () => {
         <div className="container">
           <Header />
           <Routes>
-            <Route path="/" element={<WelcomeSection />} />
+            <Route path="/" element={<WelcomeSection playedInitAnimation={playedInitAnimation} setPlayedInitAnimation={setPlayedInitAnimation} />} />
             <Route path="/map" element={<MapSection />} />
             <Route path="/contact" element={<Contact />} />
             {/* You can add other routes as needed */}
