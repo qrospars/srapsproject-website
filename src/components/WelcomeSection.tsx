@@ -5,10 +5,14 @@ interface WelcomeSectionProps {
     playedInitAnimation: boolean;
 }
 const WelcomeSection: React.FC<WelcomeSectionProps> = ({ playedInitAnimation, setPlayedInitAnimation }) => {
+    const ref1 = useRef<HTMLHeadingElement | null>(null);
+    const ref2 = useRef<HTMLHeadingElement | null>(null);
+
     const animationRefs = useMemo(() => [
-        { ref: useRef<HTMLHeadingElement | null>(null), direction: 'right' },
-        { ref: useRef<HTMLHeadingElement | null>(null), direction: 'left' },
+        { ref: ref1, direction: 'right' },
+        { ref: ref2, direction: 'left' },
     ], []);
+
 
 
 
