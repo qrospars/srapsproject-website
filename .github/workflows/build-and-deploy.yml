@@ -23,6 +23,7 @@ jobs:
       - name: Upload to FTP
         run: |
           lftp "${{ secrets.FTP_SERVER }}" -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" -e "
+          set ssl:verify-certificate no;
           mirror -R -e ./build ${{ secrets.PATH_TO_FOLDER }};
           quit
           "
