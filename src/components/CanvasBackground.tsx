@@ -135,7 +135,7 @@ const createSpheres = (
     }
 };
 
-const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
+const CanvasBackground: React.FC<CanvasBackgroundProps> = (props): React.ReactNode => {
     const sceneRef = useRef<THREE.Scene>(new THREE.Scene());
     const cameraRef = useRef<THREE.PerspectiveCamera>(
         new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -238,7 +238,7 @@ const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
         updateVertexPositions(meshRefs.current, originalPositionsRef.current, DIRECTIONS, props.scroll);
     }, [props.scroll]);
 
-    return <div ref={canvasRef} className="canvas-container" />;
+    return (<div ref={canvasRef} className="canvas-container" />);
 };
 
 export default CanvasBackground;
