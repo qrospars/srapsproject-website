@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 
 interface WelcomeSectionProps {
     setPlayedInitAnimation: React.Dispatch<React.SetStateAction<boolean>>;
     playedInitAnimation: boolean;
 }
 const WelcomeSection: React.FC<WelcomeSectionProps> = ({ playedInitAnimation, setPlayedInitAnimation }) => {
-    const animationRefs = [
+    const animationRefs = useMemo(() => [
         { ref: useRef<HTMLHeadingElement | null>(null), direction: 'right' },
         { ref: useRef<HTMLHeadingElement | null>(null), direction: 'left' },
-    ];
+    ], []);
 
 
 
@@ -133,9 +133,9 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ playedInitAnimation, se
                 </div>
                 <div className="welcome__content__social">
                     <p className="text">
-                        Want to stay updated? <a href="http://www.instagram.com/sraps.music" target='_blank' className="link">Follow us on Instagram</a>.
+                        Want to stay updated? <a href="http://www.instagram.com/sraps.music" target='_blank' rel="noopener" className="link">Follow us on Instagram</a>.
                         <br /><br />
-                        Love our project? <a href="https://sraps.bandcamp.com/album/srapsproject001" target='_blank' className="link">Support us with a pre-order on Bandcamp</a>.
+                        Love our project? <a href="https://sraps.bandcamp.com/album/srapsproject001" target='_blank' rel="noopener" className="link">Support us with a pre-order on Bandcamp</a>.
                     </p>
                 </div>
             </div>

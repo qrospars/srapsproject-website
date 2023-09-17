@@ -217,7 +217,7 @@ const CanvasBackground: React.FC<CanvasBackgroundProps> = (props) => {
                 renderer.dispose();
             }
         };
-    }, []);
+    }, [spheres]);
 
 
     useEffect(function AnimateCameraAndRender() {
