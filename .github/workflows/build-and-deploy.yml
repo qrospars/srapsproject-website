@@ -22,7 +22,7 @@ jobs:
 
       - name: Upload to FTP
         run: |
-          lftp ${{ secrets.FTP_SERVER }} -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} -e "
+          lftp "${{ secrets.FTP_SERVER }}" -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" -e "
           mirror -R -e ./build ${{ secrets.PATH_TO_FOLDER }};
           quit
           "
