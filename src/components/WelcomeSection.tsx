@@ -1,10 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 
-interface WelcomeSectionProps {
-    setPlayedInitAnimation: React.Dispatch<React.SetStateAction<boolean>>;
-    playedInitAnimation: boolean;
-}
-const WelcomeSection: React.FC<WelcomeSectionProps> = ({ playedInitAnimation, setPlayedInitAnimation }) => {
+
+const WelcomeSection: React.FC = () => {
     const ref1 = useRef<HTMLHeadingElement | null>(null);
     const ref2 = useRef<HTMLHeadingElement | null>(null);
 
@@ -61,7 +58,6 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ playedInitAnimation, se
         const slideFromTopElement = document.getElementById("title");
         const subtitleElement = document.getElementById("subtitle");
         const mainTextElement = document.getElementById("tagline");
-        const animationDuration = 2500;
 
         // Add initial animations
         if (slideFromTopElement && subtitleElement && mainTextElement) {
@@ -70,19 +66,9 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ playedInitAnimation, se
             mainTextElement.classList.add("slide-from-left--delayed");
         }
 
-        const timeoutId = setTimeout(() => {
-            requestAnimationFrame(() => {
-                if (appElementRef.current && !playedInitAnimation) {
-                    console.log('scrolling allowed')
-                    appElementRef.current.style.overflowY = 'auto';
-                }
-            });
-        }, animationDuration);
-
 
         // Clean-up
         return () => {
-            clearTimeout(timeoutId);
             animationRefs.forEach((ref) => {
                 if (ref.ref.current) {
                     if (ref.direction === 'left') {
@@ -92,13 +78,12 @@ const WelcomeSection: React.FC<WelcomeSectionProps> = ({ playedInitAnimation, se
                     }
                 }
             });
-            setPlayedInitAnimation(true);
 
             // Disconnect observers
             leftObserver.disconnect();
             rightObserver.disconnect();
         };
-    }, [animationRefs, playedInitAnimation, setPlayedInitAnimation]);
+    }, [animationRefs]);
 
 
 
