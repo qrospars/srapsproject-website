@@ -239,6 +239,25 @@ a:hover {
   transform: translateX(-50%);
 }
 
+.cityLabel {
+  color: white;
+  transition: background ease-in 0.2s;
+}
+
+.cityLabel:hover {
+  color: white;
+  background: white;
+}
+
+.css2d-label-container {
+  pointer-events: none;
+  z-index: 1;
+}
+
+.css2d-label-container .cityLabel {
+  pointer-events: auto;
+}
+
 /* FOOTER */
 
 .footer a {
