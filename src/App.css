@@ -225,6 +225,12 @@ a:hover {
 
 /* MAP (3rd screen) */
 
+.map-section {
+  display: grid;
+  align-items: center;
+  min-height: 80vh;
+}
+
 .welcome__map {
   display: flex;
   flex-direction: column;
@@ -239,16 +245,17 @@ a:hover {
   transform: translateX(-50%);
 }
 
-.welcome__map__globe {}
-
 .cityLabel {
-  color: white;
-  transition: background ease-in 0.2s;
+  color: black;
+  transition: padding ease-in 0.2s;
+  background: white;
+  width: fit-content;
+  padding: 5px;
+  cursor: pointer;
 }
 
 .cityLabel:hover {
-  color: white;
-  background: white;
+  padding: 15px;
 }
 
 .css2d-label-container {
@@ -293,13 +300,6 @@ a:hover {
   grid-column: 1/4;
 }
 
-/* MAP SECTION */
-
-.map-section {
-  display: grid;
-  align-items: center;
-  min-height: 80vh;
-}
 
 /* ANIMATIONS */
 

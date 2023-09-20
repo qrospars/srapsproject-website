@@ -7,11 +7,11 @@ import MapSection from './components/MapSection';
 import Contact from './components/Contact';
 import CanvasBackground from './components/CanvasBackground';
 import Footer from './components/Footer';
+import THREE from 'three';
 
 const App = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [showFooter, setShowFooter] = useState(true); //workaround to hide the footer on certain pages
-
 
   useEffect(() => {
     const appElement = document.querySelector('.App') as HTMLElement | null;
@@ -37,6 +37,7 @@ const App = () => {
       }
     };
   }, []);
+
 
   useEffect(() => {
     const checkRoute = () => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ThreeGlobe from 'three-globe';
-import { AmbientLight, Camera, DirectionalLight, Object3D, Object3DEventMap, PerspectiveCamera, Raycaster, Scene, Vector2, WebGLRenderer } from 'three';
+import { MeshBasicMaterial, AmbientLight, Camera, DirectionalLight, Object3D, Object3DEventMap, PerspectiveCamera, Raycaster, Scene, Vector2, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 
@@ -17,9 +17,9 @@ const cities: City[] = [
 ];
 
 const initialCameraPosition = {
-    x: -13,
-    y: 143,
-    z: 246
+    x: -8,
+    y: 113,
+    z: 103
 }
 
 const MapSection = React.memo(() => {
@@ -34,7 +34,10 @@ const MapSection = React.memo(() => {
 
     const handleLabelClickRef = useRef<((city: City) => void) | null>(null);
 
-
+    useEffect(() => {
+        if (!camera) return;
+        console.log(camera.position)
+    })
 
     useEffect(function setupScene() {
         if (!globeContainerRef.current) return;
@@ -108,13 +111,18 @@ const MapSection = React.memo(() => {
     useEffect(function setupGlobeAndInteractions() {
         if (!scene || !camera || !controls) return;
 
-
+        const globeMaterial = new MeshBasicMaterial({
+            transparent: true,
+            opacity: 1
+        });
         const globe = new ThreeGlobe()
-            .globeImageUrl('src/assets/images/8081_earthbump4k.jpg')
-            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .globeImageUrl('src/assets/images/8081_earthmap10k_grey_nosea.png')
+            // .bumpImageUrl('src/assets/images/8081_earthbump10k.jpg')
+            .globeMaterial(globeMaterial)
             .pointsData(cities)
             .pointLat('lat')
             .pointLng('lng')
+            .pointColor(() => '#9490f5')
             .pointRadius(0.05)
             .htmlElementsData(cities)
             .htmlElement(createLabelElement)
@@ -142,7 +150,6 @@ const MapSection = React.memo(() => {
             const startZ = camera.position.z;
 
             const animate = () => {
-
 
                 const now = performance.now();
                 const timeElapsed = now - startTime;
@@ -211,7 +218,6 @@ const MapSection = React.memo(() => {
             const el = document.createElement('div');
             el.innerHTML = d.name;
             el.className = 'cityLabel'
-            el.style.width = `300px`;
             el.addEventListener('click', () => handleLabelClickRef.current && handleLabelClickRef.current(d));
 
             return el;
