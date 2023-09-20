@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
@@ -10,36 +10,28 @@ import Footer from './components/Footer';
 
 const App = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
-  const appElementRef = useRef<HTMLElement | null>(null);
-  const scrollHeightRef = useRef<number>(0);
-  const clientHeightRef = useRef<number>(0);
-
-  function handleScroll() {
-    if (!appElementRef.current) return;
-
-    if (!scrollHeightRef.current || !clientHeightRef.current) {
-      scrollHeightRef.current = appElementRef.current.scrollHeight;
-      clientHeightRef.current = appElementRef.current.clientHeight;
-    }
-
-    const scrollTop = appElementRef.current.scrollTop;
-    const scrollableHeight = scrollHeightRef.current - clientHeightRef.current;
-    const scrollPercentage = (scrollTop / scrollableHeight) * 100;
-
-    setScrollPosition(Math.round(scrollPercentage));
-  }
 
   useEffect(() => {
-    appElementRef.current = document.querySelector('.App') as HTMLElement | null;
+    const appElement = document.querySelector('.App') as HTMLElement | null;
 
-    if (appElementRef.current) {
-      appElementRef.current.addEventListener('scroll', handleScroll);
+    function handleScroll() {
+      if (!appElement) return;
+
+      const scrollTop = appElement.scrollTop;
+      const scrollableHeight = appElement.scrollHeight - appElement.clientHeight;
+      const scrollPercentage = (scrollTop / scrollableHeight) * 100;
+
+      setScrollPosition(Math.round(scrollPercentage));
+    }
+
+    if (appElement) {
+      appElement.addEventListener('scroll', handleScroll);
     }
 
     // Cleanup function
     return () => {
-      if (appElementRef.current) {
-        appElementRef.current.removeEventListener('scroll', handleScroll);
+      if (appElement) {
+        appElement.removeEventListener('scroll', handleScroll);
       }
     };
   }, []);
