@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import ThreeGlobe from 'three-globe';
-import { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import { AmbientLight, DirectionalLight, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 
 const cities = [
     { name: 'Lausanne', lat: 46.5196, lng: 6.6323 },
@@ -9,7 +9,7 @@ const cities = [
     { name: 'Copenhagen', lat: 55.6761, lng: 12.5683 },
 ];
 
-const MapSection = () => {
+const MapSection = React.memo(() => {
     const globeContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -19,26 +19,49 @@ const MapSection = () => {
             .pointsData(cities)
             .pointLat('lat')
             .pointLng('lng')
-            .pointColor(() => 'black')
-            .pointAltitude(0.3)
-            .pointRadius(0.01)
+            // .pointColor(() => 'black')
+            // .pointAltitude(0.3)
+            // .pointRadius(0.01)
             .labelsData(cities)
-            .labelText('name')
-            .labelSize(0.5)
-            .labelColor(() => 'black')
-            .labelAltitude(0.02)
-            .labelResolution(2)
+            .labelText('name');
+        // .labelSize(0.5)
+        // .labelColor(() => 'black')
+        // .labelAltitude(0.02)
+        // .labelResolution(2);
 
+        // Setup renderer
         const renderer = new WebGLRenderer();
-        const scene = new Scene();
-        const camera = new PerspectiveCamera();
-        camera.position.z = 120;
-        scene.add(globe);
-        renderer.render(scene, camera);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         globeContainerRef.current.appendChild(renderer.domElement);
+
+        // Setup scene
+        const scene = new Scene();
+        scene.add(globe);
+        scene.add(new AmbientLight(0xcccccc, Math.PI));
+        scene.add(new DirectionalLight(0xffffff, 0.6 * Math.PI));
+
+        // Setup camera
+        const camera = new PerspectiveCamera();
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        camera.position.z = 500;
+
+        // Render loop
+        function animate() {
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        return () => {
+            // Cleanup code if necessary
+            if (!globeContainerRef.current) return;
+            globeContainerRef.current.removeChild(renderer.domElement);
+            renderer.dispose();
+        };
     }, []);
 
     return <div ref={globeContainerRef} style={{ width: '100%', height: '100vh' }}></div>;
-}
+});
 
 export default MapSection;
