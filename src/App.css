@@ -239,6 +239,8 @@ a:hover {
   transform: translateX(-50%);
 }
 
+.welcome__map__globe {}
+
 .cityLabel {
   color: white;
   transition: background ease-in 0.2s;

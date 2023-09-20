@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ThreeGlobe from 'three-globe';
-import { AmbientLight, DirectionalLight, PerspectiveCamera, Raycaster, Scene, Vector2, WebGLRenderer } from 'three';
+import { AmbientLight, Camera, DirectionalLight, Object3D, Object3DEventMap, PerspectiveCamera, Raycaster, Scene, Vector2, WebGLRenderer } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 
@@ -16,36 +16,30 @@ const cities: City[] = [
     { name: 'Copenhagen', lat: 55.6761, lng: 12.5683 },
 ];
 
-function latLngToXYZ(lat: number, lng: number, radius = 100) {
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lng + 180) * (Math.PI / 180);
-
-    const x = -(radius * Math.sin(phi) * Math.cos(theta));
-    const y = radius * Math.cos(phi);
-    const z = radius * Math.sin(phi) * Math.sin(theta);
-
-    return [x, y, z];
+const initialCameraPosition = {
+    x: -13,
+    y: 143,
+    z: 246
 }
 
 const MapSection = React.memo(() => {
     const globeContainerRef = useRef<HTMLDivElement>(null);
     const [popoverData, setPopoverData] = useState<City | null>(null);
     const [focusedCity, setFocusedCity] = useState<string | null>(null);
+    const [globeExists, setGlobeExists] = useState<boolean>(false);
+
+    const [scene, setScene] = useState<Scene | null>(null);
+    const [camera, setCamera] = useState<PerspectiveCamera | null>(null);
+    const [controls, setControls] = useState<OrbitControls | null>(null);
+
+    const handleLabelClickRef = useRef<((city: City) => void) | null>(null);
 
 
-    useEffect(function setupGlobeAndRaycaster() {
+
+    useEffect(function setupScene() {
         if (!globeContainerRef.current) return;
 
-        const globe = new ThreeGlobe()
-            .globeImageUrl('src/assets/images/8081_earthbump4k.jpg')
-            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-            .pointsData(cities)
-            .pointLat('lat')
-            .pointLng('lng')
-            .pointRadius(0.05)
-            .htmlElementsData(cities)
-            .htmlElement(createLabelElement)
-            .htmlAltitude(0.1);
+
 
         const labelRenderer = new CSS2DRenderer();
         labelRenderer.setSize(window.innerWidth, window.innerHeight);
@@ -61,25 +55,29 @@ const MapSection = React.memo(() => {
 
 
         const scene = new Scene();
-        scene.add(globe);
         scene.add(new AmbientLight(0xcccccc, Math.PI));
         scene.add(new DirectionalLight(0xffffff, 0.6 * Math.PI));
+        setScene(scene);
 
         const camera = new PerspectiveCamera();
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
-        camera.position.x = -13;
-        camera.position.y = 143;
-        camera.position.z = 246;
+        camera.position
+        camera.position.x = initialCameraPosition.x;
+        camera.position.y = initialCameraPosition.y;
+        camera.position.z = initialCameraPosition.z;
+        setCamera(camera);
 
         const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableZoom = true;
+        controls.enableZoom = false;
         controls.enableRotate = true;
         controls.enablePan = true;
         controls.target.set(0, 0, 0);
         controls.update();
+        setControls(controls);
 
         function animate() {
+            if (!scene || !camera) return;
             renderer.render(scene, camera);
             labelRenderer.render(scene, camera);
             requestAnimationFrame(animate);
@@ -87,11 +85,45 @@ const MapSection = React.memo(() => {
         animate();
 
         window.addEventListener('resize', () => {
+            if (!scene || !camera) return;
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+
+
+        return () => {
+            if (!globeContainerRef.current) return;
+
+            // Remove specific children
+            globeContainerRef.current.removeChild(renderer.domElement);
+            globeContainerRef.current.removeChild(labelRenderer.domElement);
+
+            renderer.dispose();
+        };
+    }, []);
+
+    useEffect(function setupGlobeAndInteractions() {
+        if (!scene || !camera || !controls) return;
+
+
+        const globe = new ThreeGlobe()
+            .globeImageUrl('src/assets/images/8081_earthbump4k.jpg')
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .pointsData(cities)
+            .pointLat('lat')
+            .pointLng('lng')
+            .pointRadius(0.05)
+            .htmlElementsData(cities)
+            .htmlElement(createLabelElement)
+            .htmlAltitude(0.1);
+
+        if (!globeExists) {
+            scene.add(globe);
+            setGlobeExists(true);
+        }
 
         let animationFrameId: number | null = null;
 
@@ -139,22 +171,10 @@ const MapSection = React.memo(() => {
         }
 
 
-        let initialCameraPosition: { x: any; y: any; z: any; } | null = null;
-        let initialTarget: { x: number; y: number; z: number; } | null = null;
 
-        function handleLabelClick(city: City) {
-            if (!initialCameraPosition || !initialTarget) {
-                initialCameraPosition = {
-                    x: camera.position.x,
-                    y: camera.position.y,
-                    z: camera.position.z
-                };
-                initialTarget = {
-                    x: controls.target.x,
-                    y: controls.target.y,
-                    z: controls.target.z
-                };
-            }
+        handleLabelClickRef.current = (city) => {
+            if (!scene || !camera || !controls) return;
+
 
             const targetPositions: Record<string, { x: number, y: number, z: number }> = {
                 "Copenhagen": { x: 5.132986211936718, y: 113.30603164927582, z: 80.19502573568701 },
@@ -177,12 +197,11 @@ const MapSection = React.memo(() => {
 
             // If we're already focused on the city, go back to the initial position
             if (focusedCity === city.name) {
-                console.log("go back to initial")
                 zoomToCity(camera, controls, "Initial", initialCameraPosition.x, initialCameraPosition.y, initialCameraPosition.z);
                 setFocusedCity(null);
             } else {
-                zoomToCity(camera, controls, city.name, targetPositions[city.name].x, targetPositions[city.name].y, targetPositions[city.name].z);
                 setFocusedCity(city.name);
+                zoomToCity(camera, controls, city.name, targetPositions[city.name].x, targetPositions[city.name].y, targetPositions[city.name].z);
             }
 
             setPopoverData(city);
@@ -193,21 +212,16 @@ const MapSection = React.memo(() => {
             el.innerHTML = d.name;
             el.className = 'cityLabel'
             el.style.width = `300px`;
-            el.addEventListener('click', () => handleLabelClick(d));
+            el.addEventListener('click', () => handleLabelClickRef.current && handleLabelClickRef.current(d));
 
             return el;
         }
+    }, [camera, controls, scene, focusedCity])
 
-        return () => {
-            if (!globeContainerRef.current) return;
+    useEffect(() => {
+    }, [focusedCity]);
 
-            // Remove specific children
-            globeContainerRef.current.removeChild(renderer.domElement);
-            globeContainerRef.current.removeChild(labelRenderer.domElement);
 
-            renderer.dispose();
-        };
-    }, []);
 
     return <div className='welcome__map__globe'>
         <div ref={globeContainerRef} style={{ width: '100%', height: '100vh' }}></div>

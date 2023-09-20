@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
 import WelcomeSection from './components/WelcomeSection';
@@ -10,6 +10,8 @@ import Footer from './components/Footer';
 
 const App = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [showFooter, setShowFooter] = useState(true); //workaround to hide the footer on certain pages
+
 
   useEffect(() => {
     const appElement = document.querySelector('.App') as HTMLElement | null;
@@ -36,6 +38,21 @@ const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const checkRoute = () => {
+      setShowFooter(window.location.pathname !== '/map');
+    };
+
+    checkRoute();
+
+    // Listen for route changes
+    window.addEventListener('popstate', checkRoute);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('popstate', checkRoute);
+    };
+  }, []);
   return (
     <Router>
       <div className="App">
@@ -45,11 +62,11 @@ const App = () => {
             <Route path="/" element={<WelcomeSection />} />
             <Route path="/map" element={<MapSection />} />
             <Route path="/contact" element={<Contact />} />
-            {/* You can add other routes as needed */}
           </Routes>
-          <Footer />
+          {showFooter && <Footer />}
+
         </div>
-        <CanvasBackground scroll={scrollPosition} /> {/* Render canvas background */}
+        <CanvasBackground scroll={scrollPosition} />
       </div>
     </Router>
   );
