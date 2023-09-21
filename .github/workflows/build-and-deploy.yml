@@ -20,10 +20,12 @@ jobs:
       - name: Build React App
         run: npm run build
 
-      - name: Upload to FTP
+      - name: Upload to SFTP
         run: |
-          lftp "${{ secrets.FTP_SERVER }}" -u "${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }}" -e "
-          set ssl:verify-certificate no;
-          mirror -R -e ./dist ${{ secrets.PATH_TO_FOLDER }};
-          quit
-          "
+          $securePassword = ConvertTo-SecureString "${{ secrets.FTP_PASSWORD }}" -AsPlainText -Force
+          $myCred = New-Object System.Management.Automation.PSCredential ("${{ secrets.FTP_USERNAME }}", $securePassword)
+          $session = New-SFTPSession -Host "${{ secrets.FTP_SERVER }}" -Port 22 -Credential $myCred
+          Get-ChildItem -Path './dist' -File | ForEach-Object {
+            Set-SFTPItem -SessionId $session.SessionId -Destination '/home/roqu0377/test' -Path $_.FullName -Force
+          }
+        shell: pwsh

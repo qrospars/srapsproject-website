@@ -116,7 +116,7 @@ const MapSection = React.memo(() => {
             opacity: 1
         });
         const globe = new ThreeGlobe()
-            .globeImageUrl('src/assets/images/8081_earthmap10k_grey_nosea.png')
+            .globeImageUrl('/8081_earthmap10k_grey_nosea.png')
             // .bumpImageUrl('src/assets/images/8081_earthbump10k.jpg')
             .globeMaterial(globeMaterial)
             .pointsData(cities)
