@@ -1,5 +1,14 @@
 {
     "version": "2.0.0",
+    "configurations": [
+        {
+            "type": "msedge",
+            "request": "launch",
+            "name": "Launch Edge against localhost",
+            "url": "http://127.0.0.1:5174/",
+            "webRoot": "${workspaceFolder}"
+        }
+    ],
     "tasks": [
         {
             "label": "Run npm start",

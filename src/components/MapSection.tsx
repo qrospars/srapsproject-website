@@ -4,6 +4,7 @@ import { MeshBasicMaterial, AmbientLight, Camera, DirectionalLight, Object3D, Ob
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 
+
 interface City {
     name: string,
     lat: number,
@@ -22,22 +23,55 @@ const initialCameraPosition = {
     z: 103
 }
 
+const globeMaterial = new MeshBasicMaterial({
+    transparent: true,
+    opacity: 1
+});
+
 const MapSection = React.memo(() => {
+
     const globeContainerRef = useRef<HTMLDivElement>(null);
     const [popoverData, setPopoverData] = useState<City | null>(null);
     const [focusedCity, setFocusedCity] = useState<string | null>(null);
-    const [globeExists, setGlobeExists] = useState<boolean>(false);
+    const [globeExists, setGlobeExists] = useState<ThreeGlobe | null>(null);
 
     const [scene, setScene] = useState<Scene | null>(null);
     const [camera, setCamera] = useState<PerspectiveCamera | null>(null);
     const [controls, setControls] = useState<OrbitControls | null>(null);
+    const [citiesLabelsAdded, setCitiesLabelsAdded] = useState<boolean>(false);
 
     const handleLabelClickRef = useRef<((city: City) => void) | null>(null);
+    const [geojsonData, setGeojsonData] = useState<any>(null);
 
-    useEffect(() => {
-        if (!camera) return;
-        console.log(camera.position)
-    })
+    useEffect(function fetchGeoJSON() {
+        fetch('../src/assets/countries.geojson')
+            .then(response => {
+                return response.json();
+            })
+            .then((data) => {
+                const globe = new ThreeGlobe()
+                    .showGlobe(false)
+                    .showAtmosphere(false)
+                    // .globeImageUrl('/8081_earthmap10k_grey_nosea.png')
+                    .polygonsData(data.features
+                        .filter((d: { properties: { ISO_A2: string; }; }) => d.properties.ISO_A2 !== 'AQ')
+                    )
+                    .polygonCapColor(() => 'rgba(22, 22, 22, 0.7)')
+                    .polygonSideColor(() => 'rgba(0, 0, 0, 0)')
+                    // .polygonStrokeColor(() => 'white')
+                    // .bumpImageUrl('src/assets/images/8081_earthbump10k.jpg')
+                    .globeMaterial(globeMaterial)
+                    .pointsData(cities)
+                    .pointLat('lat')
+                    .pointLng('lng')
+                    .pointColor(() => '#9490f5')
+                    .pointRadius(0.05)
+
+                setGlobeExists(globe);
+                // setGeojsonData(data)
+            })
+            .catch((error) => console.error("Fetch error: ", error));
+    }, []);
 
     useEffect(function setupScene() {
         if (!globeContainerRef.current) return;
@@ -87,20 +121,20 @@ const MapSection = React.memo(() => {
         }
         animate();
 
-        window.addEventListener('resize', () => {
+        function handleResize() {
             if (!scene || !camera) return;
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             labelRenderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        }
+        window.addEventListener('resize', handleResize);
 
 
 
         return () => {
             if (!globeContainerRef.current) return;
-
-            // Remove specific children
+            window.removeEventListener('resize', handleResize);
             globeContainerRef.current.removeChild(renderer.domElement);
             globeContainerRef.current.removeChild(labelRenderer.domElement);
 
@@ -109,29 +143,17 @@ const MapSection = React.memo(() => {
     }, []);
 
     useEffect(function setupGlobeAndInteractions() {
-        if (!scene || !camera || !controls) return;
+        if (!scene || !camera || !controls || !globeExists) return;
 
-        const globeMaterial = new MeshBasicMaterial({
-            transparent: true,
-            opacity: 1
-        });
-        const globe = new ThreeGlobe()
-            .globeImageUrl('/8081_earthmap10k_grey_nosea.png')
-            // .bumpImageUrl('src/assets/images/8081_earthbump10k.jpg')
-            .globeMaterial(globeMaterial)
-            .pointsData(cities)
-            .pointLat('lat')
-            .pointLng('lng')
-            .pointColor(() => '#9490f5')
-            .pointRadius(0.05)
-            .htmlElementsData(cities)
-            .htmlElement(createLabelElement)
-            .htmlAltitude(0.1);
-
-        if (!globeExists) {
-            scene.add(globe);
-            setGlobeExists(true);
+        if (!citiesLabelsAdded) {
+            scene.add(globeExists);
+            globeExists.htmlElementsData(cities)
+                .htmlElement(createLabelElement)
+                .htmlAltitude(0.1);
+            setCitiesLabelsAdded(true);
         }
+
+
 
         let animationFrameId: number | null = null;
 
@@ -177,8 +199,6 @@ const MapSection = React.memo(() => {
             animate();
         }
 
-
-
         handleLabelClickRef.current = (city) => {
             if (!scene || !camera || !controls) return;
 
@@ -222,11 +242,8 @@ const MapSection = React.memo(() => {
 
             return el;
         }
-    }, [camera, controls, scene, focusedCity])
 
-    useEffect(() => {
-    }, [focusedCity]);
-
+    }, [camera, controls, scene, focusedCity, globeExists]);
 
 
     return <div className='welcome__map__globe'>

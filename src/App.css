@@ -81,8 +81,16 @@ a:hover {
   height: 100vh;
   animation: breathing 5s infinite;
   background: linear-gradient(145deg, rgba(181, 203, 253, 1) 0%, #f5f5f5 97%);
+}
 
-
+.canvas-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.30);
 }
 
 .canvas-container canvas {
