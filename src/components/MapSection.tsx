@@ -56,7 +56,7 @@ const MapSection = React.memo(() => {
                     .polygonsData(data.features
                         .filter((d: { properties: { ISO_A2: string; }; }) => d.properties.ISO_A2 !== 'AQ')
                     )
-                    .polygonCapColor(() => 'rgba(22, 22, 22, 0.7)')
+                    .polygonCapColor(() => 'rgba(22, 22, 22, 0.8)')
                     .polygonSideColor(() => 'rgba(0, 0, 0, 0)')
                     // .polygonStrokeColor(() => 'white')
                     // .bumpImageUrl('src/assets/images/8081_earthbump10k.jpg')

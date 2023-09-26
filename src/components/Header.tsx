@@ -1,8 +1,21 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
-  const STROKE_COLOR = "#161616"
+  const STROKE_COLOR = "#161616";
+  const [showMapLink, setShowMapLink] = useState(true);
+
+  let location = useLocation();
+  useEffect(() => {
+    console.log('Changed location');
+    const checkRoute = () => {
+      setShowMapLink(location.pathname !== '/map');
+    };
+    checkRoute();
+
+    checkRoute
+  }, [location.pathname]);
+
   return (
     <header className="App-header">
       <Link to="/">
@@ -22,7 +35,7 @@ const Header = () => {
       </Link>
       <nav>
         <Link className="App-contact link" to="/map">
-          Map
+          {showMapLink ? <span>Map</span> : <span></span>}
         </Link>
       </nav>
     </header>

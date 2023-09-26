@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 interface SocialLinkProps {
   href: string;
   children: React.ReactNode;
@@ -27,6 +28,22 @@ const SocialLink = ({ href, children }: SocialLinkProps) => (
 );
 
 const Footer = () => {
+
+  const [showFooter, setShowFooter] = useState(true);
+
+  let location = useLocation();
+  useEffect(() => {
+    console.log('Changed location');
+    const checkRoute = () => {
+      setShowFooter(location.pathname !== '/map');
+    };
+    checkRoute();
+
+    checkRoute
+  }, [location.pathname]);
+
+  if (!showFooter) return;
+
   return (
     <div className="footer">
       <div className="footer__socials">
