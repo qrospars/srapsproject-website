@@ -3,9 +3,11 @@ import { AmbientLight, DirectionalLight, MeshBasicMaterial, PerspectiveCamera, S
 import ThreeGlobe from "three-globe";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { hasParentWithClass } from "../utils/domManipulation";
 
 interface GlobeProps {
-    setPopoverData: React.Dispatch<React.SetStateAction<City | null>>
+    setPopoverData: React.Dispatch<React.SetStateAction<City | null>>,
+    zoomDuration: 1000,
 }
 
 const cities: City[] = [
@@ -19,7 +21,55 @@ const initialCameraPosition = {
     x: -8,
     y: 113,
     z: 103
-}
+};
+
+const initialMobileCameraPosition = {
+    "x": 11.426280552579858,
+    "y": 123.75814139580451,
+    "z": 116.78509913376928
+};
+
+const targetPositions: Record<string, { x: number, y: number, z: number }> = {
+    "Copenhagen": { x: 5.132986211936718, y: 113.30603164927582, z: 80.19502573568701 },
+    "Paris": {
+        "x": -3.642802797915665,
+        "y": 95.10279386299032,
+        "z": 91.41493346808993
+    },
+    "Barcelone": {
+        "x": -2.1745376643235574,
+        "y": 88.90653553037562,
+        "z": 106.70869615096315
+    },
+    "Lausanne": {
+        "x": 19.666080900324445,
+        "y": 103.17727378086835,
+        "z": 90.90402601356948
+    }
+};
+
+const targetMobilePositions: Record<string, { x: number, y: number, z: number }> = {
+    "Copenhagen": {
+        "x": 14.181041281054679,
+        "y": 96.83131134494216,
+        "z": 67.87352578439112
+    },
+    "Paris": {
+        "x": 2.0038330145906973,
+        "y": 88.75810258284172,
+        "z": 79.38642308445375
+    },
+    "Barcelone": {
+        "x": 2.8176248319158113,
+        "y": 81.54373173028522,
+        "z": 86.757714912314
+    },
+    "Lausanne": {
+        "x": 11.249992295513248,
+        "y": 84.0194294841801,
+        "z": 83.65640103126772
+    }
+};
 
 const globeMaterial = new MeshBasicMaterial({
     transparent: true,
@@ -37,6 +87,17 @@ const Globe = React.memo<GlobeProps>((props) => {
     const [citiesLabelsAdded, setCitiesLabelsAdded] = useState<boolean>(false);
 
     const handleLabelClickRef = useRef<((city: City) => void) | null>(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(function calculateIfMobile() {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     useEffect(function fetchGeoJSON() {
         fetch('../src/assets/data/countries.geojson')
@@ -95,15 +156,14 @@ const Globe = React.memo<GlobeProps>((props) => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         camera.position
-        camera.position.x = initialCameraPosition.x;
-        camera.position.y = initialCameraPosition.y;
-        camera.position.z = initialCameraPosition.z;
+        camera.position.x = isMobile ? initialMobileCameraPosition.x : initialCameraPosition.x;
+        camera.position.y = isMobile ? initialMobileCameraPosition.y : initialCameraPosition.y;
+        camera.position.z = isMobile ? initialMobileCameraPosition.z : initialCameraPosition.z;
         setCamera(camera);
-
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableZoom = false;
-        controls.enableRotate = true;
-        controls.enablePan = true;
+        controls.enableRotate = false;
+        controls.enablePan = false;
         controls.target.set(0, 0, 0);
         controls.update();
         setControls(controls);
@@ -148,11 +208,9 @@ const Globe = React.memo<GlobeProps>((props) => {
             setCitiesLabelsAdded(true);
         }
 
-
-
         let animationFrameId: number | null = null;
 
-        function zoomToCity(camera: PerspectiveCamera, controls: OrbitControls, name: string, endX: number, endY: number, endZ: number) {
+        function zoomToCity(camera: PerspectiveCamera, controls: OrbitControls, name: string, endX: number, endY: number, endZ: number, duration: number) {
             // Disable controls while animating
             controls.enabled = false;
             // Cancel any ongoing animations
@@ -160,7 +218,6 @@ const Globe = React.memo<GlobeProps>((props) => {
                 cancelAnimationFrame(animationFrameId);
             }
 
-            const duration = 1000; // 5 seconds
             const startTime = performance.now();
             const startX = camera.position.x;
             const startY = camera.position.y;
@@ -194,39 +251,28 @@ const Globe = React.memo<GlobeProps>((props) => {
             animate();
         }
 
-        handleLabelClickRef.current = (city) => {
+        handleLabelClickRef.current = (city: City) => {
             if (!scene || !camera || !controls) return;
+            if (city.name === '' && focusedCity === null) return;
 
-
-            const targetPositions: Record<string, { x: number, y: number, z: number }> = {
-                "Copenhagen": { x: 5.132986211936718, y: 113.30603164927582, z: 80.19502573568701 },
-                "Paris": {
-                    "x": -3.642802797915665,
-                    "y": 95.10279386299032,
-                    "z": 91.41493346808993
-                },
-                "Barcelone": {
-                    "x": -2.1745376643235574,
-                    "y": 88.90653553037562,
-                    "z": 106.70869615096315
-                },
-                "Lausanne": {
-                    "x": 19.666080900324445,
-                    "y": 103.17727378086835,
-                    "z": 90.90402601356948
-                }
-            };
-
-            // If we're already focused on the city, go back to the initial position
-            if (focusedCity === city.name) {
-                zoomToCity(camera, controls, "Initial", initialCameraPosition.x, initialCameraPosition.y, initialCameraPosition.z);
-                setFocusedCity(null);
-            } else {
-                setFocusedCity(city.name);
-                zoomToCity(camera, controls, city.name, targetPositions[city.name].x, targetPositions[city.name].y, targetPositions[city.name].z);
+            let initCamPos = initialCameraPosition
+            let targetPos = targetPositions
+            if (isMobile) {
+                initCamPos = initialMobileCameraPosition
+                targetPos = targetMobilePositions
             }
 
-            props.setPopoverData(city);
+            // If we're already focused on the city, go back to the initial position
+            if (focusedCity === city.name || city.name === '') {
+                setFocusedCity(null);
+                props.setPopoverData(null);
+                zoomToCity(camera, controls, "Initial", initCamPos.x, initCamPos.y, initCamPos.z, props.zoomDuration * 1.5);
+            } else {
+                setFocusedCity(city.name);
+                zoomToCity(camera, controls, city.name,
+                    targetPos[city.name].x, targetPos[city.name].y, targetPos[city.name].z, props.zoomDuration);
+                props.setPopoverData(city);
+            }
         }
 
         function createLabelElement(d: any): HTMLElement {
@@ -237,9 +283,44 @@ const Globe = React.memo<GlobeProps>((props) => {
 
             return el;
         }
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'p' || e.key === 'P') {
+                console.log(camera?.position);
+            }
+        };
 
-    }, [camera, controls, scene, focusedCity, globeExists]);
+        window.addEventListener('keydown', handleKeyDown);
 
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+
+    }, [camera, controls, scene, focusedCity, globeExists, isMobile]);
+
+    useEffect(function HandleClickOnGlobe() {
+        const handleClickInside = (event: MouseEvent) => {
+            if (!handleLabelClickRef.current) return;
+            const target = event.target as HTMLElement;
+
+            // make sure to not click on a city label
+            console.log(target.classList)
+            if (target.parentElement
+                && !target.classList.contains('cityLabel')
+                && !hasParentWithClass(target, 'popoverPanel')) {
+                handleLabelClickRef.current({
+                    lat: 0,
+                    lng: 0,
+                    name: ''
+                })
+            }
+        };
+
+        document.addEventListener('click', handleClickInside);
+
+        return () => {
+            document.removeEventListener('click', handleClickInside);
+        };
+    }, []);
 
     return (<div
         ref={globeContainerRef}

@@ -104,7 +104,7 @@ a:hover {
 /* General Fonts / Typography Styles */
 
 .title {
-  font-size: clamp(1.6rem, 3vw, 3rem);
+  font-size: clamp(1.8rem, 3vw, 3rem);
 }
 
 .aclonica {
@@ -112,7 +112,7 @@ a:hover {
 }
 
 .subtitle {
-  font-size: clamp(0.8rem, 1vw, 1rem);
+  font-size: clamp(1rem, 1vw, 1rem);
 }
 
 .tagline {
@@ -268,12 +268,99 @@ a:hover {
 
 .css2d-label-container {
   pointer-events: none;
-  z-index: 1;
+  z-index: 4;
 }
 
 .css2d-label-container .cityLabel {
   pointer-events: auto;
 }
+
+.welcome__map__globe {
+  /* padding-left: 50vh; */
+  overflow-x: hidden;
+}
+
+.popoverPanel {
+  position: absolute;
+  left: 7.5vw;
+  top: 15vh;
+  width: 85vw;
+  height: 70vh;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8.9px);
+  transition: all 1s ease-out 0.5s;
+  z-index: 5;
+  overflow-y: auto;
+  filter: drop-shadow(2px 4px 6px rgba(255, 255, 255, 0.4));
+}
+
+/* 
+.popoverPanel--right,
+.popoverPanel--left {
+  transition: transform 1s ease-out;
+} */
+
+.popoverPanel--visible {
+  pointer-events: fill;
+  opacity: 1;
+}
+
+.popoverPanel--hidden {
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media (min-width: 500px) {
+  .popoverPanel {
+    position: absolute;
+    left: 10vw;
+    top: 10vh;
+    width: 40vw;
+    height: 80vh;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .popoverPanel--right {
+    transform: translateX(100%);
+  }
+}
+
+
+.popoverPanel__content {
+  z-index: 10;
+  display: flex;
+  padding: 5vh;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.popoverPanel__content__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  /* Set 100px as minimum width */
+  gap: 20px;
+}
+
+
+.popoverPanel__content__grid__item {
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease-out;
+  cursor: pointer;
+}
+
+.popoverPanel__content__grid__item:hover {
+  transform: scale(1.1);
+}
+
+
 
 /* FOOTER */
 
@@ -463,4 +550,8 @@ font-style: italic;
 .italic {
   font-weight: 400;
   font-style: italic;
+}
+
+.bold {
+  font-weight: 600;
 }
