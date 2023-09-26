@@ -1,15 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ThreeGlobe from 'three-globe';
-import { MeshBasicMaterial, AmbientLight, Camera, DirectionalLight, Object3D, Object3DEventMap, PerspectiveCamera, Raycaster, Scene, Vector2, WebGLRenderer } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
+import React, { useEffect, useRef, useState } from "react";
+import { AmbientLight, DirectionalLight, MeshBasicMaterial, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import ThreeGlobe from "three-globe";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 
-
-interface City {
-    name: string,
-    lat: number,
-    lng: number
+interface GlobeProps {
+    setPopoverData: React.Dispatch<React.SetStateAction<City | null>>
 }
+
 const cities: City[] = [
     { name: 'Lausanne', lat: 46.5196, lng: 6.6323 },
     { name: 'Paris', lat: 48.8566, lng: 2.3522 },
@@ -28,10 +26,8 @@ const globeMaterial = new MeshBasicMaterial({
     opacity: 1
 });
 
-const MapSection = React.memo(() => {
-
+const Globe = React.memo<GlobeProps>((props) => {
     const globeContainerRef = useRef<HTMLDivElement>(null);
-    const [popoverData, setPopoverData] = useState<City | null>(null);
     const [focusedCity, setFocusedCity] = useState<string | null>(null);
     const [globeExists, setGlobeExists] = useState<ThreeGlobe | null>(null);
 
@@ -41,10 +37,9 @@ const MapSection = React.memo(() => {
     const [citiesLabelsAdded, setCitiesLabelsAdded] = useState<boolean>(false);
 
     const handleLabelClickRef = useRef<((city: City) => void) | null>(null);
-    const [geojsonData, setGeojsonData] = useState<any>(null);
 
     useEffect(function fetchGeoJSON() {
-        fetch('../src/assets/countries.geojson')
+        fetch('../src/assets/data/countries.geojson')
             .then(response => {
                 return response.json();
             })
@@ -231,7 +226,7 @@ const MapSection = React.memo(() => {
                 zoomToCity(camera, controls, city.name, targetPositions[city.name].x, targetPositions[city.name].y, targetPositions[city.name].z);
             }
 
-            setPopoverData(city);
+            props.setPopoverData(city);
         }
 
         function createLabelElement(d: any): HTMLElement {
@@ -246,14 +241,10 @@ const MapSection = React.memo(() => {
     }, [camera, controls, scene, focusedCity, globeExists]);
 
 
-    return <div className='welcome__map__globe'>
-        <div ref={globeContainerRef} style={{ width: '100%', height: '100vh' }}></div>
-        {popoverData && (
-            <div className="popover-panel">
-                This is a test
-            </div>
-        )}
-    </div>;
+    return (<div
+        ref={globeContainerRef}
+        style={{ width: '100%', height: '100vh' }}>
+    </div>)
 });
 
-export default MapSection;
+export default Globe;

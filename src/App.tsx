@@ -5,8 +5,8 @@ import {
   Route
 } from "react-router-dom"; import './App.css';
 import Header from './components/Header';
-import WelcomeSection from './components/WelcomeSection';
-import MapSection from './components/MapSection';
+import WelcomeSection from './pages/WelcomeSection';
+import MapSection from './pages/MapSection';
 import Contact from './components/Contact';
 import CanvasBackground from './components/CanvasBackground';
 import Footer from './components/Footer';
