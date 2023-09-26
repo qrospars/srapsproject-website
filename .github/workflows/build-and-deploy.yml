@@ -26,6 +26,6 @@ jobs:
           $myCred = New-Object System.Management.Automation.PSCredential ("${{ secrets.FTP_USERNAME }}", $securePassword)
           $session = New-SFTPSession -Host "${{ secrets.FTP_SERVER }}" -Port 22 -Credential $myCred
           Get-ChildItem -Path './dist' -File | ForEach-Object {
-            Set-SFTPItem -SessionId $session.SessionId -Destination '/home/roqu0377/srapsproject2com' -Path $_.FullName -Force
+            Set-SFTPItem -SessionId $session.SessionId -Destination '/home/roqu0377/srapsproject2.com' -Path $_.FullName -Force
           }
         shell: pwsh
