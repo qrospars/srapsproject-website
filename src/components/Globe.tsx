@@ -100,7 +100,7 @@ const Globe = React.memo<GlobeProps>((props) => {
     }, []);
 
     useEffect(function fetchGeoJSON() {
-        fetch('../src/assets/data/countries.geojson')
+        fetch('/data/countries.geojson')
             .then(response => {
                 return response.json();
             })
